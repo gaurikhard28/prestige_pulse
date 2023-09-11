@@ -17,7 +17,8 @@ class ProductDetailsScreen extends StatefulWidget {
 
 class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
   final AssetsAudioPlayer _assetsAudioPlayer = AssetsAudioPlayer();
-  final CartBloc cartBloc = CartBloc();
+  //final CartBloc cartBloc = CartBloc();
+  late CartBloc cartBloc;
 
   @override
   void initState() {
@@ -31,6 +32,7 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    cartBloc = BlocProvider.of<CartBloc>(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(

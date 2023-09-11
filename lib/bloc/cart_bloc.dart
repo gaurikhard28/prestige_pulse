@@ -23,6 +23,9 @@ class CartBloc extends Bloc<CartEvent, CartState> {
       _cartItems = List<CartItem>.from(
         cartItemsData.map((item) => CartItem.fromJson(item)),
       );
+
+      // Emit a CartUpdated state to notify the UI about the loaded items
+      emit(CartUpdated(List.from(_cartItems)));
     }
   }
 
@@ -37,17 +40,19 @@ class CartBloc extends Bloc<CartEvent, CartState> {
           break;
         }
       }
-      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+
       if (!alreadyInCart) {
-
+        SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
         _cartItems.add(CartItem(product: event.product));
+        print(_cartItems);
         sharedPreferences.setString("cartItems", jsonEncode(_cartItems));
-
       }
       yield CartUpdated(List.from(_cartItems));
-    } else if (event is RemoveFromCart) {
+    }
+    else if (event is RemoveFromCart) {
       SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
       _cartItems.removeWhere((item) => item.product.id == event.product.id);
+      print(_cartItems);
       sharedPreferences.setString("cartItems", jsonEncode(_cartItems));
       yield CartUpdated(List.from(_cartItems));
     }

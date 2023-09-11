@@ -26,3 +26,8 @@ class CartUpdated extends CartState {
 
   CartUpdated(this.cartItems);
 }
+
+final class CartError extends CartState {
+@override
+List<Object> get props => [];
+}
