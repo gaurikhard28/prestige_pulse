@@ -17,44 +17,62 @@ class CartBloc extends Bloc<CartEvent, CartState> {
   Future<void> _loadCartItems() async {
     SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
     String? cartItemsJson = sharedPreferences.getString("cartItems");
+    try {
+      if (cartItemsJson != null) {
+        List<dynamic> cartItemsData = jsonDecode(cartItemsJson);
+        _cartItems = List<CartItem>.from(
+          cartItemsData.map((item) => CartItem.fromJson(item)),
+        );
 
-    if (cartItemsJson != null) {
-      List<dynamic> cartItemsData = jsonDecode(cartItemsJson);
-      _cartItems = List<CartItem>.from(
-        cartItemsData.map((item) => CartItem.fromJson(item)),
-      );
-
-      // Emit a CartUpdated state to notify the UI about the loaded items
-      emit(CartUpdated(List.from(_cartItems)));
+        // Emit a CartUpdated state to notify the UI about the loaded items
+        emit(CartUpdated(List.from(_cartItems)));
+      }
+    }
+    catch (_) {
+      emit(CartError());
     }
   }
 
   @override
   Stream<CartState> mapEventToState(CartEvent event) async* {
     if (event is AddToCart) {
-      bool alreadyInCart = false;
-      for (var item in _cartItems) {
-        if (item.product.id == event.product.id) {
-          item.quantity++;
-          alreadyInCart = true;
-          break;
+      try {
+        bool alreadyInCart = false;
+        for (var item in _cartItems) {
+          if (item.product.id == event.product.id) {
+            item.quantity++;
+            alreadyInCart = true;
+            break;
+          }
         }
-      }
 
-      if (!alreadyInCart) {
-        SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-        _cartItems.add(CartItem(product: event.product));
-        print(_cartItems);
-        sharedPreferences.setString("cartItems", jsonEncode(_cartItems));
+        if (!alreadyInCart) {
+          SharedPreferences sharedPreferences = await SharedPreferences
+              .getInstance();
+          _cartItems.add(CartItem(product: event.product));
+          print(_cartItems);
+          sharedPreferences.setString("cartItems", jsonEncode(_cartItems));
+        }
+        yield CartUpdated(List.from(_cartItems));
       }
-      yield CartUpdated(List.from(_cartItems));
+      catch (e) {
+        print('Error: $e');
+        yield CartError();
+      }
     }
     else if (event is RemoveFromCart) {
-      SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
-      _cartItems.removeWhere((item) => item.product.id == event.product.id);
-      print(_cartItems);
-      sharedPreferences.setString("cartItems", jsonEncode(_cartItems));
-      yield CartUpdated(List.from(_cartItems));
+      try {
+        SharedPreferences sharedPreferences = await SharedPreferences
+            .getInstance();
+        _cartItems.removeWhere((item) => item.product.id == event.product.id);
+        print(_cartItems);
+        sharedPreferences.setString("cartItems", jsonEncode(_cartItems));
+        yield CartUpdated(List.from(_cartItems));
+      }
+      catch (e) {
+        print('Error: $e');
+        yield CartError();
+      }
     }
   }
 }
